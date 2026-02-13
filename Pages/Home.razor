@@ -169,16 +169,10 @@
     {
         try
         {
-            await using var stream = item.BrowserFile.OpenReadStream(MaxFileSize);
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var bytes = ms.ToArray();
-
-            item.ThumbnailUrl = $"data:{item.BrowserFile.ContentType};base64,{Convert.ToBase64String(bytes)}";
-
             item.Job = new LoadedImage(item.FileName, item.FileSize, _targetFormat);
-            using var imageStream = new MemoryStream(bytes);
-            await item.Job.LoadAsync(imageStream);
+            await using var stream = item.BrowserFile.OpenReadStream(MaxFileSize);
+            await item.Job.LoadAsync(stream);
+            item.ThumbnailUrl = item.Job.ToThumbnailDataUrl();
             item.Status = ImageItemStatus.Pending;
         }
         catch (Exception ex)

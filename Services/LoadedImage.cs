@@ -1,6 +1,8 @@
 using ImageConverter.Components;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 
 namespace ImageConverter.Services;
 
@@ -44,6 +46,19 @@ public sealed class LoadedImage(string fileName, long fileSize, IImageFormat tar
         long imageMemory = pixels * 4;
         long encoderOverhead = encoderOptions?.EstimateEncoderOverhead(pixels) ?? pixels * 2;
         return imageMemory + encoderOverhead;
+    }
+
+    public string ToThumbnailDataUrl(int maxSize = 320)
+    {
+        if (_image is null)
+            throw new InvalidOperationException("Image not loaded.");
+
+        using var thumbnail = _image.Clone(ctx => ctx.Resize(new ResizeOptions
+        {
+            Size = new Size(maxSize, maxSize),
+            Mode = ResizeMode.Max
+        }));
+        return thumbnail.ToBase64String(JpegFormat.Instance);
     }
 
     public void Dispose()
