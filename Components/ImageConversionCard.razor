@@ -80,7 +80,7 @@
                        Size="MudBlazor.Size.Large"
                        StartIcon="@Icons.Material.Filled.Download"
                        OnClick="DownloadResult"
-                       Disabled="@(_result is null)"
+                       Disabled="@(_result is null || _convertedSize == 0)"
                        Class="mt-2">
                 下载
             </MudButton>
@@ -109,6 +109,8 @@
                                         ?? ImageFormatInfo.EncodableFormats[0];
     private ImageConversionJob? _job;
     private ConversionResult? _result;
+    private IImageFormat? _resultFormat;
+    private bool _suppressResultClear;
     private bool _converting;
     private long _convertedSize;
     private long _estimatedMemory;
@@ -126,17 +128,24 @@
         _targetFormat = format;
         if (_job is not null)
             _job.TargetFormat = format;
-        _result?.Stream.Dispose();
-        _result = null;
-        _convertedSize = 0;
+        _suppressResultClear = true;
+        _convertedSize = (_result is not null && format == _resultFormat) ? _result.Size : 0;
         _estimatedMemory = _job?.EstimateMemory(EncoderOptions) ?? 0;
     }
 
     private void RecalculateMemory()
     {
-        _result?.Stream.Dispose();
-        _result = null;
-        _convertedSize = 0;
+        if (_suppressResultClear)
+        {
+            _suppressResultClear = false;
+        }
+        else
+        {
+            _result?.Stream.Dispose();
+            _result = null;
+            _resultFormat = null;
+            _convertedSize = 0;
+        }
         _estimatedMemory = _job?.EstimateMemory(EncoderOptions) ?? 0;
     }
 
@@ -204,6 +213,7 @@
         _convertedSize = 0;
         _result?.Stream.Dispose();
         _result = null;
+        _resultFormat = null;
         StateHasChanged();
 
         Logger.LogInformation("开始转换图像");
@@ -212,6 +222,7 @@
         {
             var result = await _job.ConvertAsync(EncoderOptions);
             _result = result;
+            _resultFormat = _targetFormat;
             _convertedSize = result.Size;
         }
         catch (OutOfMemoryException)
