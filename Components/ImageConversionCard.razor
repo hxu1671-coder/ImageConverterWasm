@@ -1,5 +1,6 @@
 @using ImageConverter.Services
 @using SixLabors.ImageSharp.Formats
+@using SixLabors.ImageSharp.Formats.Png
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject ILogger<ImageConversionCard> Logger
@@ -93,7 +94,7 @@
 @code {
     [Parameter, EditorRequired] public IBrowserFile File { get; set; } = default!;
 
-    private IImageFormat _targetFormat = ImageFormatInfo.EncodableFormats.FirstOrDefault(f => f.Name == "PNG")
+    private IImageFormat _targetFormat = ImageFormatInfo.EncodableFormats.FirstOrDefault(f => f is PngFormat)
                                         ?? ImageFormatInfo.EncodableFormats[0];
     private ImageConversionJob? _job;
     private bool _converting;
