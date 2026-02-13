@@ -70,8 +70,19 @@
                 }
                 else
                 {
-                    <span>转换并下载</span>
+                    <span>转换</span>
                 }
+            </MudButton>
+
+            <MudButton Variant="Variant.Outlined"
+                       Color="MudBlazor.Color.Primary"
+                       FullWidth="true"
+                       Size="MudBlazor.Size.Large"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       OnClick="DownloadResult"
+                       Disabled="@(_result is null || _convertedSize == 0)"
+                       Class="mt-2">
+                下载
             </MudButton>
 
             @if (_convertedSize > 0)
@@ -97,6 +108,9 @@
     private IImageFormat _targetFormat = ImageFormatInfo.EncodableFormats.FirstOrDefault(f => f is PngFormat)
                                         ?? ImageFormatInfo.EncodableFormats[0];
     private ImageConversionJob? _job;
+    private ConversionResult? _result;
+    private IImageFormat? _resultFormat;
+    private bool _suppressResultClear;
     private bool _converting;
     private long _convertedSize;
     private long _estimatedMemory;
@@ -114,11 +128,24 @@
         _targetFormat = format;
         if (_job is not null)
             _job.TargetFormat = format;
+        _suppressResultClear = true;
+        _convertedSize = (_result is not null && format == _resultFormat) ? _result.Size : 0;
         _estimatedMemory = _job?.EstimateMemory(EncoderOptions) ?? 0;
     }
 
     private void RecalculateMemory()
     {
+        if (_suppressResultClear)
+        {
+            _suppressResultClear = false;
+        }
+        else
+        {
+            _result?.Stream.Dispose();
+            _result = null;
+            _resultFormat = null;
+            _convertedSize = 0;
+        }
         _estimatedMemory = _job?.EstimateMemory(EncoderOptions) ?? 0;
     }
 
@@ -184,6 +211,9 @@
         _converting = true;
         _errorMessage = null;
         _convertedSize = 0;
+        _result?.Stream.Dispose();
+        _result = null;
+        _resultFormat = null;
         StateHasChanged();
 
         Logger.LogInformation("开始转换图像");
@@ -191,13 +221,9 @@
         try
         {
             var result = await _job.ConvertAsync(EncoderOptions);
+            _result = result;
+            _resultFormat = _targetFormat;
             _convertedSize = result.Size;
-
-            using var streamRef = new DotNetStreamReference(result.Stream);
-            if (_jsModule is not null)
-            {
-                await _jsModule.InvokeVoidAsync("downloadFileFromStream", result.OutputFileName, streamRef);
-            }
         }
         catch (OutOfMemoryException)
         {
@@ -216,8 +242,19 @@
         }
     }
 
+    private async Task DownloadResult()
+    {
+        if (_result is null || _jsModule is null)
+            return;
+
+        _result.Stream.Position = 0;
+        using var streamRef = new DotNetStreamReference(_result.Stream, leaveOpen: true);
+        await _jsModule.InvokeVoidAsync("downloadFileFromStream", _result.OutputFileName, streamRef);
+    }
+
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        _result?.Stream.Dispose();
         _job?.Dispose();
 
         if (_jsModule is not null)
