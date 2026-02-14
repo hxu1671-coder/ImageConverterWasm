@@ -86,7 +86,7 @@
 
 <MudOverlay Visible="_previewVisible" DarkBackground="true" AutoClose="true"
             OnClosed="() => _previewVisible = false"
-            Class="d-flex align-center justify-center">
+            ZIndex="_previewZIndex" Class="d-flex align-center justify-center">
     @if (_previewUrl is null)
     {
         <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary" />
@@ -109,6 +109,7 @@
 
     private bool _previewVisible;
     private string? _previewUrl;
+    private static readonly int _previewZIndex = new ZIndex().Dialog;
 
     private async Task OpenPreview()
     {
