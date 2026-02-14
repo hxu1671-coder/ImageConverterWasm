@@ -62,7 +62,7 @@
             <MudIconButton Icon="@Icons.Material.Filled.Transform"
                            Color="MudBlazor.Color.Primary"
                            Size="MudBlazor.Size.Small"
-                           Disabled="@(Item.Status is not ImageItemStatus.Pending and not ImageItemStatus.Done and not ImageItemStatus.Error)"
+                           Disabled="@(Busy || Item.Status is not ImageItemStatus.Pending and not ImageItemStatus.Done and not ImageItemStatus.Error)"
                            OnClick="() => OnConvert.InvokeAsync(Item)" />
         </MudTooltip>
         <MudTooltip Text="下载">
@@ -77,6 +77,7 @@
             <MudIconButton Icon="@Icons.Material.Filled.Close"
                            Color="MudBlazor.Color.Error"
                            Size="MudBlazor.Size.Small"
+                           Disabled="Busy"
                            OnClick="() => OnRemove.InvokeAsync(Item)" />
         </MudTooltip>
     </MudCardActions>
@@ -84,6 +85,7 @@
 
 @code {
     [Parameter, EditorRequired] public required ImageItem Item { get; set; }
+    [Parameter] public bool Busy { get; set; }
     [Parameter] public EventCallback<ImageItem> OnConvert { get; set; }
     [Parameter] public EventCallback<ImageItem> OnDownload { get; set; }
     [Parameter] public EventCallback<ImageItem> OnRemove { get; set; }
