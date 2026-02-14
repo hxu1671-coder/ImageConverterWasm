@@ -21,15 +21,18 @@
                    AppendMultipleFiles
                    Accept="@FormatInfo.AcceptExtensions"
                    OnFilesChanged="OnFilesChanged"
-                   MaximumFileCount="100">
+                   MaximumFileCount="100"
+                   Hidden="false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity: 0"
+                   @ondrop="ClearDragClass"
+                   @ondragenter="SetDragClass"
+                   @ondragleave="ClearDragClass"
+                   @ondragend="ClearDragClass">
         <ActivatorContent>
             <MudPaper Outlined="true"
                       Class="@GetDragClass()"
-                      Style="min-height: 160px; cursor: pointer;"
-                      @ondrop="ClearDragClass"
-                      @ondragenter="SetDragClass"
-                      @ondragleave="ClearDragClass"
-                      @ondragend="ClearDragClass">
+                      Style="min-height: 160px; cursor: pointer;">
                 <MudIcon Icon="@Icons.Material.Filled.CloudUpload"
                          Size="MudBlazor.Size.Large" Color="MudBlazor.Color.Primary" />
                 <MudText Typo="Typo.body1">点击或拖拽图像文件到此处（支持多选）</MudText>
@@ -109,7 +112,7 @@
 
 @code {
     private const string DefaultDragClass =
-        "rounded-lg border-2 border-dashed pa-4 d-flex flex-column align-center justify-center gap-2";
+        "relative rounded-lg border-2 border-dashed pa-4 d-flex flex-column align-center justify-center gap-2";
     private const long MaxFileSize = 50 * 1024 * 1024;
 
     private bool _dragging;
