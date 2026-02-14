@@ -9,7 +9,7 @@
                ValueChanged="OnTargetFormatChanged"
                Variant="Variant.Outlined"
                Class="mb-4">
-        @foreach (var format in ImageFormatInfo.EncodableFormats)
+        @foreach (var format in FormatInfo.EncodableFormats)
         {
             <MudSelectItem Value="@format">@format.Name</MudSelectItem>
         }
