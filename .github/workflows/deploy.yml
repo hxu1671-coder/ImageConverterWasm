@@ -49,9 +49,6 @@ jobs:
       - name: Add .nojekyll
         run: touch ${{ env.PUBLISH_DIR }}/.nojekyll
 
-      - name: Copy 404.html
-        run: cp ${{ env.PUBLISH_DIR }}/404.html ${{ env.PUBLISH_DIR }}/404.html 2>/dev/null || true
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

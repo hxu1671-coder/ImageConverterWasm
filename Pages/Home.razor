@@ -48,27 +48,29 @@
 @if (_items.Count > 0)
 {
     <ConversionPanel TargetFormat="_targetFormat"
-                        TargetFormatChanged="OnTargetFormatChanged"
-                        EncoderChanged="OnEncoderChanged"
-                        Class="mb-4" />
+                     TargetFormatChanged="OnTargetFormatChanged"
+                     EncoderChanged="OnEncoderChanged"
+                     Class="mb-4" />
 
     @* Batch Action Toolbar *@
     <MudPaper Class="pa-3 mb-4" Elevation="1">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Transform"
-                       OnClick="ConvertAll"
-                       Disabled="@(_batchConverting || !HasConvertableItems)">
-                @if (_batchConverting)
-                {
+            @if (_batchConverting)
+            {
+                <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" Disabled="true">
                     <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" Class="mr-2" />
-                    <span>批量转换中 (@_convertedCount/@_totalToConvert)...</span>
-                }
-                else
-                {
-                    <span>全部转换</span>
-                }
-            </MudButton>
+                    批量转换中 (@_convertedCount/@_totalToConvert)...
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Transform"
+                           OnClick="ConvertAll"
+                           Disabled="!HasLoadedItems">
+                    全部转换
+                </MudButton>
+            }
             <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary"
                        StartIcon="@Icons.Material.Filled.Download"
                        OnClick="DownloadAll"
@@ -101,10 +103,11 @@
         {
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <ImageCard @key="item.Id"
-                               Item="item"
-                               OnConvert="ConvertSingle"
-                               OnDownload="DownloadSingle"
-                               OnRemove="RemoveItem" />
+                           Item="item"
+                           Busy="_batchConverting"
+                           OnConvert="ConvertSingle"
+                           OnDownload="DownloadSingle"
+                           OnRemove="RemoveItem" />
             </MudItem>
         }
     </MudGrid>
@@ -126,8 +129,8 @@
     private int _convertedCount;
     private int _totalToConvert;
 
-    private bool HasConvertableItems =>
-        _items.Any(i => i.Status is ImageItemStatus.Pending or ImageItemStatus.Error);
+    private bool HasLoadedItems =>
+        _items.Any(i => i.Job is { IsLoaded: true });
 
     private bool HasDownloadableItems =>
         _items.Any(i => i.Status is ImageItemStatus.Done);
@@ -232,7 +235,7 @@
     private async Task ConvertAll()
     {
         var toConvert = _items
-            .Where(i => i.Status is ImageItemStatus.Pending or ImageItemStatus.Error)
+            .Where(i => i.Job is { IsLoaded: true })
             .ToList();
 
         _batchConverting = true;
