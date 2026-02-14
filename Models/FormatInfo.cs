@@ -1,9 +1,9 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 
-namespace ImageConverter.Services;
+namespace ImageConverter.Models;
 
-public static class ImageFormatInfo
+public static class FormatInfo
 {
     public static IReadOnlyList<IImageFormat> EncodableFormats { get; } = [.. Configuration.Default.ImageFormats
         .Where(f =>

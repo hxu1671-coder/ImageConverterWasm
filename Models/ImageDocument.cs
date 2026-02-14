@@ -3,17 +3,15 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 
-namespace ImageConverter.Services;
+namespace ImageConverter.Models;
 
-public sealed class LoadedImage(string fileName, long fileSize, IImageFormat targetFormat) : IDisposable
+public sealed class ImageDocument(string fileName, IImageFormat targetFormat) : IDisposable
 {
     private Image? _image;
 
     public string FileName { get; } = fileName;
-    public long FileSize { get; } = fileSize;
     public int Width => _image?.Width ?? 0;
     public int Height => _image?.Height ?? 0;
-    public string SourceFormat => _image?.Metadata.DecodedImageFormat?.Name ?? "";
     public bool IsLoaded => _image is not null;
     public IImageFormat TargetFormat { get; set; } = targetFormat;
 
@@ -34,7 +32,7 @@ public sealed class LoadedImage(string fileName, long fileSize, IImageFormat tar
         await _image.SaveAsync(outputStream, encoder);
 
         outputStream.Position = 0;
-        var outputFileName = ImageFormatInfo.GetOutputFileName(FileName, TargetFormat);
+        var outputFileName = FormatInfo.GetOutputFileName(FileName, TargetFormat);
         return new ConversionResult(outputStream, outputFileName, outputStream.Length);
     }
 

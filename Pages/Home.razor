@@ -19,7 +19,7 @@
 
     <MudFileUpload T="IReadOnlyList<IBrowserFile>"
                    AppendMultipleFiles
-                   Accept="@ImageFormatInfo.AcceptExtensions"
+                   Accept="@FormatInfo.AcceptExtensions"
                    OnFilesChanged="OnFilesChanged"
                    MaximumFileCount="100">
         <ActivatorContent>
@@ -34,7 +34,7 @@
                          Size="MudBlazor.Size.Large" Color="MudBlazor.Color.Primary" />
                 <MudText Typo="Typo.body1">点击或拖拽图像文件到此处（支持多选）</MudText>
                 <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">
-                    支持 @string.Join(", ", ImageFormatInfo.EncodableFormats.Select(f => f.Name))
+                    支持 @string.Join(", ", FormatInfo.EncodableFormats.Select(f => f.Name))
                 </MudText>
             </MudPaper>
         </ActivatorContent>
@@ -44,7 +44,7 @@
 @* === Conversion Settings + Batch Actions + Image Grid === *@
 @if (_items.Count > 0)
 {
-    <ConversionSettings TargetFormat="_targetFormat"
+    <ConversionPanel TargetFormat="_targetFormat"
                         TargetFormatChanged="OnTargetFormatChanged"
                         EncoderChanged="OnEncoderChanged"
                         Class="mb-4" />
@@ -97,7 +97,7 @@
         @foreach (var item in _items)
         {
             <MudItem xs="12" sm="6" md="4" lg="3">
-                <ImageItemCard @key="item.Id"
+                <ImageCard @key="item.Id"
                                Item="item"
                                OnConvert="ConvertSingle"
                                OnDownload="DownloadSingle"
@@ -114,9 +114,9 @@
 
     private bool _dragging;
     private readonly List<ImageItem> _items = new();
-    private IImageFormat _targetFormat = ImageFormatInfo.EncodableFormats
+    private IImageFormat _targetFormat = FormatInfo.EncodableFormats
         .FirstOrDefault(f => f is PngFormat)
-        ?? ImageFormatInfo.EncodableFormats[0];
+        ?? FormatInfo.EncodableFormats[0];
     private IImageEncoder? _encoder;
     private IJSObjectReference? _jsModule;
     private bool _batchConverting;
@@ -160,7 +160,7 @@
     {
         try
         {
-            item.Job = new LoadedImage(item.FileName, item.FileSize, _targetFormat);
+            item.Job = new ImageDocument(item.FileName, _targetFormat);
             await using var stream = item.BrowserFile.OpenReadStream(MaxFileSize);
             await item.Job.LoadAsync(stream);
             item.ThumbnailUrl = item.Job.ToThumbnailDataUrl();
